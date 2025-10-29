@@ -1,0 +1,64 @@
+Develop a Flappy Bird-style game using Jetpack Compose with the following specifications:
+
+1. Game Assets:
+
+- Bird character: Use "modi.png" as the player-controlled bird image
+
+- Obstacles: Use "mamata.png" as the pipe/obstacle image
+
+- Ensure all assets are properly scaled and optimized for mobile display
+
+2. Core Gameplay Mechanics:
+
+- Implement physics for bird movement including gravity and tap-to-jump mechanics
+
+- Create randomly generated obstacle patterns with appropriate spacing
+
+- Add collision detection between bird and obstacles/ground
+
+- Include smooth animations for bird flapping and obstacle movement
+
+3. Scoring System:
+
+- Increment score when player successfully passes between obstacles
+
+- Display current score prominently during gameplay
+
+- Implement visual feedback for scoring events
+
+4. Data Persistence:
+
+- Store highest score locally using Android's SharedPreferences
+
+- Display both current score and highest score on game over screen
+
+- Ensure score data persists between app launches
+
+5. UI/UX Features:
+
+- Create attractive start screen with play button
+
+- Implement game over screen with restart option
+
+- Add subtle sound effects for jumps, collisions, and scoring
+
+- Include visual effects for game events (particles on collision, etc.)
+
+6. Performance Optimization:
+
+- Ensure smooth 60fps gameplay
+
+- Optimize image loading and rendering
+
+- Implement proper game state management
+
+7. Additional Features:
+
+- Add difficulty progression (increasing speed over time)
+
+- Include day/night background variations
+
+- Implement simple achievements system (e.g., first 10 points)
+
+The game should be professionally polished with attention to detail in animations, responsive controls, and visual feedback to create an engaging and fun player experience.
+
