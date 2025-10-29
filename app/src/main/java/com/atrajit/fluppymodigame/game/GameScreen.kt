@@ -124,19 +124,30 @@ fun GameScreen() {
                 }
             },
             onCollision = { position ->
-                // Create explosion effect on collision
+                // Create dramatic explosion effect on collision
                 particleSystem.createExplosion(
-                    position = position.copy(x = position.x + 30f, y = position.y + 30f),
-                    particleCount = 30,
-                    color = Color.Red
+                    position = position.copy(x = position.x + 60f, y = position.y + 60f),
+                    particleCount = 80,
+                    color = Color(0xFFFF5722) // Orange-red explosion
+                )
+                // Add secondary white flash
+                particleSystem.createExplosion(
+                    position = position.copy(x = position.x + 60f, y = position.y + 60f),
+                    particleCount = 40,
+                    color = Color.White
                 )
             },
             onScoreEffect = { position ->
-                // Create score effect when passing obstacles
+                // Create celebratory score effect when passing obstacles
+                particleSystem.createExplosion(
+                    position = position,
+                    particleCount = 25,
+                    color = Color(0xFF00FF00) // Bright green
+                )
                 particleSystem.createExplosion(
                     position = position,
                     particleCount = 15,
-                    color = Color.Green
+                    color = Color(0xFFFFEB3B) // Gold sparkles
                 )
             }
         )
