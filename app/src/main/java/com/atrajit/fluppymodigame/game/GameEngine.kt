@@ -27,22 +27,33 @@ class GameEngine(
     var score by mutableStateOf(0)
     
     // Bird properties
-    var birdPosition by mutableStateOf(Offset(screenWidth / 3, screenHeight / 2))
+    var birdPosition by mutableStateOf(Offset(screenWidth / 4, screenHeight / 2))
     var birdVelocity by mutableStateOf(0f)
-    val birdSize = Size(60f, 60f)
+    val birdSize = Size(120f, 120f)  // Increased from 60 to 120 for better visibility
     
     // Physics constants
-    private val gravity = 0.5f
-    private val jumpVelocity = -10f
-    private val maxVelocity = 15f
+    private val gravity = 0.6f
+    private val jumpVelocity = -12f
+    private val maxVelocity = 18f
     
-    // Obstacles
+    // Obstacles - Progressive difficulty system
     var obstacles by mutableStateOf<List<Obstacle>>(emptyList())
-    private val gapHeight = 200f
-    private val obstacleWidth = 80f
-    private val minObstacleHeight = 100f
-    private val obstacleSpacing = 300f
-    private var obstacleSpeed = 4f
+    private val initialGapHeight = 650f  // Very generous starting gap
+    private val minGapHeight = 350f  // Minimum gap at higher levels
+    private var currentGapHeight = initialGapHeight
+    
+    private val obstacleWidth = 300f  // Original PNG width
+    
+    private val initialMinObstacleHeight = 80f  // Start with very short obstacles
+    private val maxMinObstacleHeight = 200f  // Maximum obstacle height at higher levels
+    private var currentMinObstacleHeight = initialMinObstacleHeight
+    
+    private val initialMaxObstacleHeight = 100f  // Initial max obstacle height
+    private val maxObstacleHeight = 350f  // Maximum at higher levels
+    private var currentMaxObstacleHeight = initialMaxObstacleHeight
+    
+    private val obstacleSpacing = 1000f  // More spacing between obstacles
+    private var obstacleSpeed = 5f  // Base speed
     
     // Game loop
     private var gameJob: Job? = null
@@ -53,9 +64,9 @@ class GameEngine(
     private var timeElapsed = 0f
     private val dayNightCycleDuration = 30f // seconds
     
-    // Difficulty progression
+    // Difficulty progression - slower increase for better gameplay
     private var difficultyLevel = 1
-    private val difficultyIncreaseInterval = 10 // points
+    private val difficultyIncreaseInterval = 15 // points - increased from 10 to 15
     
     init {
         resetGame()
@@ -98,16 +109,21 @@ class GameEngine(
     }
     
     fun resetGame() {
-        birdPosition = Offset(screenWidth / 3, screenHeight / 2)
+        birdPosition = Offset(screenWidth / 4, screenHeight / 2)
         birdVelocity = 0f
         obstacles = emptyList()
         score = 0
         gameOver = false
         isPaused = false
-        obstacleSpeed = 4f
+        obstacleSpeed = 5f
         difficultyLevel = 1
         timeElapsed = 0f
         isDayTime = true
+        
+        // Reset difficulty parameters
+        currentGapHeight = initialGapHeight
+        currentMinObstacleHeight = initialMinObstacleHeight
+        currentMaxObstacleHeight = initialMaxObstacleHeight
         
         // Initialize obstacles
         generateInitialObstacles()
@@ -181,12 +197,27 @@ class GameEngine(
     }
     
     private fun addObstacle(xPosition: Float = screenWidth) {
-        val topHeight = (minObstacleHeight + Math.random() * (screenHeight - gapHeight - 2 * minObstacleHeight)).toFloat()
+        // Calculate the safe zone where the gap can be positioned
+        // Leave margin at top and bottom to ensure obstacles are visible
+        val topMargin = 100f
+        val bottomMargin = 150f // Account for ground
+        val safeZoneHeight = screenHeight - topMargin - bottomMargin - currentGapHeight
+        
+        // Randomly position the gap within the safe zone
+        val gapTopPosition = topMargin + (Math.random() * safeZoneHeight).toFloat()
+        
+        // Top obstacle goes from 0 to gap start
+        val topHeight = gapTopPosition
+        
+        // Bottom obstacle starts after the gap and goes to screen height
+        val bottomY = gapTopPosition + currentGapHeight
+        val bottomHeight = screenHeight - bottomY
+        
         val newObstacle = Obstacle(
             x = xPosition,
             topHeight = topHeight,
-            bottomY = topHeight + gapHeight,
-            bottomHeight = screenHeight - topHeight - gapHeight,
+            bottomY = bottomY,
+            bottomHeight = bottomHeight,
             width = obstacleWidth,
             passed = false
         )
@@ -239,7 +270,18 @@ class GameEngine(
         val newDifficultyLevel = 1 + score / difficultyIncreaseInterval
         if (newDifficultyLevel > difficultyLevel) {
             difficultyLevel = newDifficultyLevel
-            obstacleSpeed += 0.5f
+            
+            // Increase speed gradually
+            obstacleSpeed += 0.3f
+            
+            // Gradually decrease gap (but not below minimum)
+            currentGapHeight = (currentGapHeight - 25f).coerceAtLeast(minGapHeight)
+            
+            // Gradually increase minimum obstacle height
+            currentMinObstacleHeight = (currentMinObstacleHeight + 15f).coerceAtMost(maxMinObstacleHeight)
+            
+            // Gradually increase maximum obstacle height
+            currentMaxObstacleHeight = (currentMaxObstacleHeight + 25f).coerceAtMost(maxObstacleHeight)
         }
     }
     

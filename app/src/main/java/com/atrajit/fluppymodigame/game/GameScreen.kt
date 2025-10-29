@@ -64,10 +64,30 @@ fun GameScreen() {
             null
         }
     }
+    val boomSound = remember { 
+        try {
+            MediaPlayer.create(context, R.raw.boom)
+        } catch (e: Exception) {
+            null
+        }
+    }
     val scoreSound = remember { 
         try {
             MediaPlayer.create(context, R.raw.score)
         } catch (e: Exception) {
+            null
+        }
+    }
+    
+    // Background music
+    val backgroundMusic = remember {
+        try {
+            MediaPlayer.create(context, R.raw.game_theme)?.apply {
+                isLooping = true
+                setVolume(0.5f, 0.5f) // Increased volume
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
@@ -82,7 +102,15 @@ fun GameScreen() {
             screenHeight = screenHeight,
             onGameOver = { score ->
                 coroutineScope.launch {
-                    collisionSound?.start()
+                    // Play both collision sounds simultaneously with different volumes
+                    collisionSound?.apply {
+                        setVolume(1.0f, 1.0f) // 100% volume for bahen-ke-lode
+                        start()
+                    }
+                    boomSound?.apply {
+                        setVolume(0.6f, 0.6f) // 60% volume for boom
+                        start()
+                    }
                     gameState = GameState.GAME_OVER
                     if (score > highScore) {
                         highScore = score
@@ -119,17 +147,57 @@ fun GameScreen() {
         onDispose {
             jumpSound?.release()
             collisionSound?.release()
+            boomSound?.release()
             scoreSound?.release()
+            backgroundMusic?.stop()
+            backgroundMusic?.release()
             gameEngine.stopGame()
+        }
+    }
+    
+    // Control background music based on game state
+    LaunchedEffect(gameState) {
+        when (gameState) {
+            GameState.PLAYING -> {
+                try {
+                    backgroundMusic?.let {
+                        if (!it.isPlaying) {
+                            it.start()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            GameState.GAME_OVER -> {
+                try {
+                    backgroundMusic?.let {
+                        if (it.isPlaying) {
+                            it.pause()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            GameState.START -> {
+                try {
+                    backgroundMusic?.let {
+                        if (it.isPlaying) {
+                            it.pause()
+                        }
+                        it.seekTo(0) // Reset to beginning
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
     
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                if (gameEngine.isDayTime) Color(0xFF87CEEB) else Color(0xFF191970)
-            )
             .pointerInput(gameState) {
                 detectTapGestures {
                     when (gameState) {
@@ -160,6 +228,12 @@ fun GameScreen() {
                 }
             }
     ) {
+        // Space background
+        SpaceBackground(
+            modifier = Modifier.fillMaxSize(),
+            isDayTime = gameEngine.isDayTime
+        )
+        
         // Draw game elements
         GameRenderer(gameEngine = gameEngine)
         
@@ -177,16 +251,28 @@ fun GameScreen() {
                 )
             }
             GameState.PLAYING -> {
-                // Score display
-                Text(
-                    text = "Score: ${gameEngine.score}",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+                // Score display with shadow for better visibility
+                Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 32.dp)
-                )
+                ) {
+                    // Shadow text
+                    Text(
+                        text = "Score: ${gameEngine.score}",
+                        color = Color.Black,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.offset(x = 2.dp, y = 2.dp)
+                    )
+                    // Main text
+                    Text(
+                        text = "Score: ${gameEngine.score}",
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             GameState.GAME_OVER -> {
                 GameOverScreen(
@@ -207,36 +293,59 @@ fun GameScreen() {
 
 @Composable
 fun StartScreen(onStart: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0x60000000)),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Fluppy Modi Game",
-            color = Color.White,
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        
-        Button(
-            onClick = onStart,
-            modifier = Modifier.padding(16.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            // Title with shadow
+            Box {
+                Text(
+                    text = "Fluppy Modi Game",
+                    color = Color.Black,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.offset(x = 3.dp, y = 3.dp)
+                )
+                Text(
+                    text = "Fluppy Modi Game",
+                    color = Color.White,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Button(
+                onClick = onStart,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(width = 200.dp, height = 60.dp)
+            ) {
+                Text(
+                    text = "Start Game",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
             Text(
-                text = "Start Game",
-                fontSize = 20.sp
+                text = "Tap to fly!",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
-        
-        Text(
-            text = "Tap to fly!",
-            color = Color.White,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(top = 16.dp)
-        )
     }
 }
 
@@ -246,43 +355,81 @@ fun GameOverScreen(
     highScore: Int,
     onRestart: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0x80000000)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(Color(0xB0000000)),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Game Over",
-            color = Color.White,
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "Score: $score",
-            color = Color.White,
-            fontSize = 24.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        
-        Text(
-            text = "High Score: $highScore",
-            color = Color.White,
-            fontSize = 24.sp,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        
-        Button(
-            onClick = onRestart,
-            modifier = Modifier.padding(16.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "Play Again",
-                fontSize = 20.sp
-            )
+            // Game Over title with shadow
+            Box(modifier = Modifier.padding(bottom = 32.dp)) {
+                Text(
+                    text = "Game Over",
+                    color = Color.Black,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.offset(x = 3.dp, y = 3.dp)
+                )
+                Text(
+                    text = "Game Over",
+                    color = Color.Red,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Score display
+            Box(modifier = Modifier.padding(bottom = 16.dp)) {
+                Text(
+                    text = "Score: $score",
+                    color = Color.Black,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.offset(x = 2.dp, y = 2.dp)
+                )
+                Text(
+                    text = "Score: $score",
+                    color = Color.White,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            // High score display
+            Box(modifier = Modifier.padding(bottom = 40.dp)) {
+                Text(
+                    text = "High Score: $highScore",
+                    color = Color.Black,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.offset(x = 2.dp, y = 2.dp)
+                )
+                Text(
+                    text = "High Score: $highScore",
+                    color = Color(0xFFFFD700),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            
+            Button(
+                onClick = onRestart,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(width = 200.dp, height = 60.dp)
+            ) {
+                Text(
+                    text = "Play Again",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

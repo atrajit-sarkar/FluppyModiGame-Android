@@ -12,22 +12,16 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.atrajit.fluppymodigame.R
 
 @Composable
 fun GameRenderer(gameEngine: GameEngine) {
+    val density = LocalDensity.current
+    
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset(0.dp, 0.dp)
-        ) {
-            // Background is drawn in the parent Box in GameScreen
-        }
-        
         // Obstacles (pipes)
         gameEngine.obstacles.forEach { obstacle ->
             // Top pipe
@@ -36,8 +30,14 @@ fun GameRenderer(gameEngine: GameEngine) {
                 contentDescription = "Top Pipe",
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .offset(obstacle.x.dp, 0.dp)
-                    .size(obstacle.width.dp, obstacle.topHeight.dp)
+                    .offset(
+                        x = with(density) { obstacle.x.toDp() },
+                        y = 0.dp
+                    )
+                    .size(
+                        width = with(density) { obstacle.width.toDp() },
+                        height = with(density) { obstacle.topHeight.toDp() }
+                    )
             )
             
             // Bottom pipe
@@ -46,8 +46,14 @@ fun GameRenderer(gameEngine: GameEngine) {
                 contentDescription = "Bottom Pipe",
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .offset(obstacle.x.dp, obstacle.bottomY.dp)
-                    .size(obstacle.width.dp, obstacle.bottomHeight.dp)
+                    .offset(
+                        x = with(density) { obstacle.x.toDp() },
+                        y = with(density) { obstacle.bottomY.toDp() }
+                    )
+                    .size(
+                        width = with(density) { obstacle.width.toDp() },
+                        height = with(density) { obstacle.bottomHeight.toDp() }
+                    )
             )
         }
         
@@ -63,8 +69,11 @@ fun GameRenderer(gameEngine: GameEngine) {
             contentDescription = "Bird",
             contentScale = ContentScale.Fit,
             modifier = Modifier
-                .offset(gameEngine.birdPosition.x.dp, gameEngine.birdPosition.y.dp)
-                .size(60.dp)
+                .offset(
+                    x = with(density) { gameEngine.birdPosition.x.toDp() },
+                    y = with(density) { gameEngine.birdPosition.y.toDp() }
+                )
+                .size(with(density) { gameEngine.birdSize.width.toDp() })
                 .rotate(birdRotation)
         )
         
