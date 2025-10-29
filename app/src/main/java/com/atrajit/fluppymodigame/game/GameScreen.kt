@@ -95,6 +95,9 @@ fun GameScreen() {
     // Particle system for visual effects
     val particleSystem = remember { ParticleSystem() }
     
+    // Shatter effect for collision
+    val shatterEffect = remember { ShatterEffect() }
+    
     // Game engine
     val gameEngine = remember {
         GameEngine(
@@ -124,6 +127,12 @@ fun GameScreen() {
                 }
             },
             onCollision = { position ->
+                // Trigger shatter effect - Modi breaks into pieces
+                shatterEffect.trigger(
+                    position = position.copy(x = position.x + 60f, y = position.y + 60f),
+                    size = 120f // Fixed size for shatter effect
+                )
+                
                 // Create dramatic explosion effect on collision
                 particleSystem.createExplosion(
                     position = position.copy(x = position.x + 60f, y = position.y + 60f),
@@ -246,16 +255,28 @@ fun GameScreen() {
         )
         
         // Draw game elements
-        GameRenderer(gameEngine = gameEngine)
+        GameRenderer(
+            gameEngine = gameEngine,
+            shatterEffect = shatterEffect
+        )
         
         // Draw particle effects
         ParticleEffect(particleSystem = particleSystem)
+        
+        // Update shatter effect
+        LaunchedEffect(Unit) {
+            while (true) {
+                shatterEffect.update(0.016f)
+                delay(16)
+            }
+        }
         
         // UI overlays based on game state
         when (gameState) {
             GameState.START -> {
                 StartScreen(
                     onStart = {
+                        shatterEffect.reset() // Reset shatter effect when starting
                         gameState = GameState.PLAYING
                         gameEngine.startGame()
                     }
@@ -290,6 +311,7 @@ fun GameScreen() {
                     score = gameEngine.score,
                     highScore = highScore,
                     onRestart = {
+                        shatterEffect.reset()
                         gameEngine.resetGame()
                         gameState = GameState.PLAYING
                         gameEngine.startGame()
