@@ -2,4 +2,12 @@
 <resources>
 
     <style name="Theme.FluppyModiGame" parent="android:Theme.Material.Light.NoActionBar" />
+    
+    <!-- Splash Screen Theme -->
+    <style name="SplashTheme" parent="Theme.FluppyModiGame">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
 </resources>

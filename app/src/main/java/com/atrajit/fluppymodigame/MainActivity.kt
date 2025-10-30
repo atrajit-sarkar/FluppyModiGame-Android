@@ -14,6 +14,9 @@ import com.atrajit.fluppymodigame.ui.theme.FluppyModiGameTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Set the theme back to the regular theme after splash screen
+        setTheme(R.style.Theme_FluppyModiGame)
+        
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
