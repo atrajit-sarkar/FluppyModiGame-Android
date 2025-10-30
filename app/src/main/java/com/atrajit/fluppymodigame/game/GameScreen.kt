@@ -176,11 +176,11 @@ fun GameScreen() {
                     if (aiManager.hasApiKey()) {
                         coroutineScope.launch {
                             val scoreLevel = when (engine.score) {
-                                in 0..10 -> 0
-                                in 11..20 -> 11
+                                in 0..20 -> 0
                                 in 21..30 -> 21
                                 in 31..40 -> 31
-                                else -> 41
+                                in 41..50 -> 41
+                                else -> 51
                             }
                             val commentary = aiManager.generateCommentary(
                                 scoreLevel, engine.score, action, speaker
@@ -188,8 +188,8 @@ fun GameScreen() {
                             if (commentary.isNotEmpty()) {
                                 currentCommentary = commentary
                                 commentarySpeaker = speaker
-                                // Clear after 5.5 seconds (5500ms) - giving user time to read
-                                delay(5500)
+                                // Clear after 3 seconds
+                                delay(3000)
                                 if (currentCommentary == commentary) {
                                     currentCommentary = ""
                                 }

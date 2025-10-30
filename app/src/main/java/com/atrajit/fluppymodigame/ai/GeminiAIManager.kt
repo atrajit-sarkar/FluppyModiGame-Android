@@ -80,10 +80,10 @@ class GeminiAIManager(private val context: Context) {
             val apiKey = getApiKey() ?: return@withContext ""
             
             val levelContext = when (scoreLevel) {
-                in 0..10 -> "casual and playful, space theme"
-                in 11..20 -> "flirty and provocative, DJ party theme. Mamata challenges Modi with suggestive comments like 'Come on Modi, hit me harder!' or 'Is that all you got?'"
-                in 21..30 -> "intense and aggressive, fiery hell theme. Both are angry and competitive"
-                in 31..40 -> "mystical and philosophical, Naruto genjutsu theme. References to chakra and ninja techniques"
+                in 0..20 -> "casual and playful, space theme"
+                in 21..30 -> "flirty and provocative, DJ party theme. Mamata challenges Modi with suggestive comments like 'Come on Modi, hit me harder!' or 'Is that all you got?'"
+                in 31..40 -> "intense and aggressive, fiery hell theme. Both are angry and competitive"
+                in 41..50 -> "mystical and philosophical, Naruto genjutsu theme. References to chakra and ninja techniques"
                 else -> "spooky and eerie, haunted theme. Ghost-like and supernatural references"
             }
             
@@ -98,18 +98,18 @@ class GeminiAIManager(private val context: Context) {
                 
                 ${if (speaker == "mamata") {
                     when (scoreLevel) {
-                        in 0..10 -> "Mamata should taunt Modi playfully"
-                        in 11..20 -> "Mamata should be flirty and provocative, teasing Modi with suggestive challenges"
-                        in 21..30 -> "Mamata should be angry and aggressive"
-                        in 31..40 -> "Mamata should speak like a ninja villain"
+                        in 0..20 -> "Mamata should taunt Modi playfully"
+                        in 21..30 -> "Mamata should be flirty and provocative, teasing Modi with suggestive challenges"
+                        in 31..40 -> "Mamata should be angry and aggressive"
+                        in 41..50 -> "Mamata should speak like a ninja villain"
                         else -> "Mamata should sound like a ghost"
                     }
                 } else {
                     when (scoreLevel) {
-                        in 0..10 -> "Modi should respond confidently"
-                        in 11..20 -> "Modi should be determined but flustered by Mamata's teasing"
-                        in 21..30 -> "Modi should sound fierce and determined"
-                        in 31..40 -> "Modi should use ninja-style determination"
+                        in 0..20 -> "Modi should respond confidently"
+                        in 21..30 -> "Modi should be determined but flustered by Mamata's teasing"
+                        in 31..40 -> "Modi should sound fierce and determined"
+                        in 41..50 -> "Modi should use ninja-style determination"
                         else -> "Modi should be brave despite fear"
                     }
                 }}

@@ -23,35 +23,35 @@ data class GameTheme(
 object ThemeManager {
     private val themes = listOf(
         GameTheme(
-            scoreRange = 0..10,
+            scoreRange = 0..20,
             birdDrawableId = R.drawable.modi,
             obstacleDrawableId = R.drawable.mamata,
             backgroundType = BackgroundType.SPACE,
             backgroundDescription = "Space with stars and planets"
         ),
         GameTheme(
-            scoreRange = 11..20,
+            scoreRange = 21..30,
             birdDrawableId = R.drawable.glaring_modi,
             obstacleDrawableId = R.drawable.hot_mamata,
             backgroundType = BackgroundType.DJ_PARTY,
             backgroundDescription = "DJ party with sunrise, seashore and flying birds"
         ),
         GameTheme(
-            scoreRange = 21..30,
+            scoreRange = 31..40,
             birdDrawableId = R.drawable.angry_modi,
             obstacleDrawableId = R.drawable.angry_mamata,
             backgroundType = BackgroundType.FIERY_HELL,
             backgroundDescription = "Fiery hell with flames and lava"
         ),
         GameTheme(
-            scoreRange = 31..40,
+            scoreRange = 41..50,
             birdDrawableId = R.drawable.highest_modi,
             obstacleDrawableId = R.drawable.uruchimaru_mamata,
             backgroundType = BackgroundType.NARUTO_GENJUTSU,
             backgroundDescription = "Naruto Shippuden genjutsu with Itachi crows"
         ),
         GameTheme(
-            scoreRange = 41..Int.MAX_VALUE,
+            scoreRange = 51..Int.MAX_VALUE,
             birdDrawableId = R.drawable.hulk_modi,
             obstacleDrawableId = R.drawable.mamata_ghost,
             backgroundType = BackgroundType.HAUNTED_HOUSE,
