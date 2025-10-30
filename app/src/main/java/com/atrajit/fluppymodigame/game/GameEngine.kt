@@ -25,6 +25,7 @@ class GameEngine(
     var isPaused by mutableStateOf(false)
     var gameOver by mutableStateOf(false)
     var score by mutableStateOf(0)
+    var currentTheme by mutableStateOf(ThemeManager.getThemeForScore(0))
     
     // Bird properties
     var birdPosition by mutableStateOf(Offset(screenWidth / 4, screenHeight / 2))
@@ -119,6 +120,7 @@ class GameEngine(
         difficultyLevel = 1
         timeElapsed = 0f
         isDayTime = true
+        currentTheme = ThemeManager.getThemeForScore(0)
         
         // Reset difficulty parameters
         currentGapHeight = initialGapHeight
@@ -185,6 +187,9 @@ class GameEngine(
                 score++
                 onScoreUpdate(score)
                 onScoreEffect(Offset(obstacle.x + obstacleWidth, screenHeight / 2))
+                
+                // Update theme based on new score
+                updateTheme()
             }
         }
     }
@@ -282,6 +287,13 @@ class GameEngine(
             
             // Gradually increase maximum obstacle height
             currentMaxObstacleHeight = (currentMaxObstacleHeight + 25f).coerceAtMost(maxObstacleHeight)
+        }
+    }
+    
+    private fun updateTheme() {
+        val newTheme = ThemeManager.getThemeForScore(score)
+        if (newTheme != currentTheme) {
+            currentTheme = newTheme
         }
     }
     

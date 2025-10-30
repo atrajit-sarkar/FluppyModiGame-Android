@@ -251,7 +251,8 @@ fun GameScreen() {
         // Space background
         SpaceBackground(
             modifier = Modifier.fillMaxSize(),
-            isDayTime = gameEngine.isDayTime
+            isDayTime = gameEngine.isDayTime,
+            backgroundType = gameEngine.currentTheme.backgroundType
         )
         
         // Draw game elements

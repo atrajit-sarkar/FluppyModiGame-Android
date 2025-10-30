@@ -38,6 +38,7 @@ fun GameRenderer(
     shatterEffect: ShatterEffect
 ) {
     val density = LocalDensity.current
+    val currentTheme = gameEngine.currentTheme
     
     Box(modifier = Modifier.fillMaxSize()) {
         // Obstacles (pipes) with futuristic glow
@@ -49,7 +50,7 @@ fun GameRenderer(
             Box {
                 // Glow effect behind
                 Image(
-                    painter = painterResource(id = R.drawable.mamata),
+                    painter = painterResource(id = currentTheme.obstacleDrawableId),
                     contentDescription = "Top Pipe Glow",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
@@ -67,7 +68,7 @@ fun GameRenderer(
                 
                 // Main pipe with shadow
                 Image(
-                    painter = painterResource(id = R.drawable.mamata),
+                    painter = painterResource(id = currentTheme.obstacleDrawableId),
                     contentDescription = "Top Pipe",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
@@ -91,7 +92,7 @@ fun GameRenderer(
             Box {
                 // Glow effect behind
                 Image(
-                    painter = painterResource(id = R.drawable.mamata),
+                    painter = painterResource(id = currentTheme.obstacleDrawableId),
                     contentDescription = "Bottom Pipe Glow",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
@@ -109,7 +110,7 @@ fun GameRenderer(
                 
                 // Main pipe
                 Image(
-                    painter = painterResource(id = R.drawable.mamata),
+                    painter = painterResource(id = currentTheme.obstacleDrawableId),
                     contentDescription = "Bottom Pipe",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
@@ -214,7 +215,7 @@ fun GameRenderer(
             
             // Circular glow/aura behind Modi
             Image(
-                painter = painterResource(id = R.drawable.modi),
+                painter = painterResource(id = currentTheme.birdDrawableId),
                 contentDescription = "Bird Aura",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -232,7 +233,7 @@ fun GameRenderer(
             
             // Main circular Modi image with shadow
             Image(
-                painter = painterResource(id = R.drawable.modi),
+                painter = painterResource(id = currentTheme.birdDrawableId),
                 contentDescription = "Bird",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
