@@ -18,13 +18,54 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${project.rootDir}/keystore/release.keystore")
+            storePassword = "fluppy123"
+            keyAlias = "fluppymodi"
+            keyPassword = "fluppy123"
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+            
+            // R8 optimization flags
+            isDebuggable = false
+            isJniDebuggable = false
+            isPseudoLocalesEnabled = false
+            
+            // Packaging options for smaller APK
+            packaging {
+                resources {
+                    excludes += setOf(
+                        "META-INF/DEPENDENCIES",
+                        "META-INF/LICENSE",
+                        "META-INF/LICENSE.txt",
+                        "META-INF/license.txt",
+                        "META-INF/NOTICE",
+                        "META-INF/NOTICE.txt",
+                        "META-INF/notice.txt",
+                        "META-INF/*.kotlin_module"
+                    )
+                }
+            }
+        }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
     }
     compileOptions {
