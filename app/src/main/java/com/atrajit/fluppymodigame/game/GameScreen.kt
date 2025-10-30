@@ -337,24 +337,16 @@ fun StartScreen(onStart: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Title with shadow
-            Box {
-                Text(
-                    text = "Fluppy Modi Game",
-                    color = Color.Black,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.offset(x = 3.dp, y = 3.dp)
-                )
-                Text(
-                    text = "Fluppy Modi Game",
-                    color = Color.White,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
+            // Title with better styling
+            Text(
+                text = "Fluppy Modi\nGame",
+                color = Color.White,
+                fontSize = 56.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 64.sp,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
             
             Spacer(modifier = Modifier.height(48.dp))
             
