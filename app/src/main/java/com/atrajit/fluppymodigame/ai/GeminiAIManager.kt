@@ -2,6 +2,7 @@ package com.atrajit.fluppymodigame.ai
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -14,9 +15,10 @@ class GeminiAIManager(private val context: Context) {
         context.getSharedPreferences("game_prefs", Context.MODE_PRIVATE)
     
     companion object {
+        private const val TAG = "GeminiAIManager"
         private const val API_KEY_PREF = "gemini_api_key"
         private const val GEMINI_API_URL = 
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     }
     
     fun getApiKey(): String? {
@@ -77,7 +79,13 @@ class GeminiAIManager(private val context: Context) {
         speaker: String // "mamata" or "modi"
     ): String = withContext(Dispatchers.IO) {
         try {
-            val apiKey = getApiKey() ?: return@withContext ""
+            val apiKey = getApiKey()
+            if (apiKey.isNullOrEmpty()) {
+                Log.e(TAG, "No API key found")
+                return@withContext ""
+            }
+            
+            Log.d(TAG, "Generating commentary for speaker=$speaker, score=$currentScore, action=$recentAction")
             
             val levelContext = when (scoreLevel) {
                 in 0..20 -> "casual and playful, space theme"
@@ -118,8 +126,11 @@ class GeminiAIManager(private val context: Context) {
             """.trimIndent()
             
             val response = callGeminiAPI(apiKey, prompt)
-            parseCommentaryResponse(response)
+            val commentary = parseCommentaryResponse(response)
+            Log.d(TAG, "Generated commentary: $commentary")
+            commentary
         } catch (e: Exception) {
+            Log.e(TAG, "Error generating commentary", e)
             e.printStackTrace()
             "" // Return empty if error
         }
@@ -133,8 +144,8 @@ class GeminiAIManager(private val context: Context) {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
-            connection.connectTimeout = 10000
-            connection.readTimeout = 10000
+            connection.connectTimeout = 15000
+            connection.readTimeout = 15000
             
             val requestBody = JSONObject().apply {
                 put("contents", JSONArray().apply {
@@ -148,16 +159,27 @@ class GeminiAIManager(private val context: Context) {
                 })
             }
             
+            Log.d(TAG, "Calling Gemini API...")
+            
             connection.outputStream.use { os ->
                 os.write(requestBody.toString().toByteArray())
             }
             
             val responseCode = connection.responseCode
+            Log.d(TAG, "API Response code: $responseCode")
+            
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                return connection.inputStream.bufferedReader().use { it.readText() }
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                Log.d(TAG, "API Response: ${response.take(200)}")
+                return response
             } else {
+                val errorStream = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                Log.e(TAG, "API call failed with code: $responseCode, error: $errorStream")
                 throw Exception("API call failed with code: $responseCode")
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception in API call", e)
+            throw e
         } finally {
             connection.disconnect()
         }
@@ -193,14 +215,24 @@ class GeminiAIManager(private val context: Context) {
     
     private fun parseCommentaryResponse(response: String): String {
         try {
+            Log.d(TAG, "Parsing commentary response...")
             val jsonResponse = JSONObject(response)
             val candidates = jsonResponse.getJSONArray("candidates")
+            
+            if (candidates.length() == 0) {
+                Log.e(TAG, "No candidates in response")
+                return ""
+            }
+            
             val content = candidates.getJSONObject(0)
                 .getJSONObject("content")
             val parts = content.getJSONArray("parts")
             val text = parts.getJSONObject(0).getString("text")
-            return text.trim()
+            val trimmedText = text.trim()
+            Log.d(TAG, "Parsed commentary text: $trimmedText")
+            return trimmedText
         } catch (e: Exception) {
+            Log.e(TAG, "Error parsing commentary response", e)
             e.printStackTrace()
             return ""
         }

@@ -2,6 +2,7 @@ package com.atrajit.fluppymodigame.game
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -172,8 +173,10 @@ fun GameScreen() {
             },
             onCommentaryUpdate = { speaker, action ->
                 // Generate AI commentary
+                Log.d("GameScreen", "Commentary update requested: speaker=$speaker, action=$action")
                 gameEngineRef?.let { engine ->
                     if (aiManager.hasApiKey()) {
+                        Log.d("GameScreen", "API key available, generating commentary")
                         coroutineScope.launch {
                             val scoreLevel = when (engine.score) {
                                 in 0..20 -> 0
@@ -186,6 +189,7 @@ fun GameScreen() {
                                 scoreLevel, engine.score, action, speaker
                             )
                             if (commentary.isNotEmpty()) {
+                                Log.d("GameScreen", "Setting commentary: $commentary")
                                 currentCommentary = commentary
                                 commentarySpeaker = speaker
                                 // Clear after 3 seconds
@@ -193,8 +197,12 @@ fun GameScreen() {
                                 if (currentCommentary == commentary) {
                                     currentCommentary = ""
                                 }
+                            } else {
+                                Log.d("GameScreen", "Commentary was empty")
                             }
                         }
+                    } else {
+                        Log.d("GameScreen", "No API key available")
                     }
                 }
             }
