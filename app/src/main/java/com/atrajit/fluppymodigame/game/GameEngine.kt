@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
+import com.atrajit.fluppymodigame.ai.DifficultyAdjustment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,7 +19,8 @@ class GameEngine(
     private val onGameOver: (Int) -> Unit,
     private val onScoreUpdate: (Int) -> Unit,
     private val onCollision: (Offset) -> Unit = {},
-    private val onScoreEffect: (Offset) -> Unit = {}
+    private val onScoreEffect: (Offset) -> Unit = {},
+    private val onCommentaryUpdate: (String, String) -> Unit = { _, _ -> } // (speaker, text)
 ) {
     // Game state
     var isRunning by mutableStateOf(false)
@@ -26,6 +28,14 @@ class GameEngine(
     var gameOver by mutableStateOf(false)
     var score by mutableStateOf(0)
     var currentTheme by mutableStateOf(ThemeManager.getThemeForScore(0))
+    
+    // AI gameplay tracking
+    var hitCount = 0
+    private var gameStartTime = 0L
+    private var totalGameTime = 0f
+    private var gamesPlayed = 0
+    var aiSpeedMultiplier by mutableStateOf(1.0f)
+    var aiGapMultiplier by mutableStateOf(1.0f)
     
     // Bird properties
     var birdPosition by mutableStateOf(Offset(screenWidth / 4, screenHeight / 2))
@@ -69,6 +79,17 @@ class GameEngine(
     private var difficultyLevel = 1
     private val difficultyIncreaseInterval = 15 // points - increased from 10 to 15
     
+    // Gameplay metrics for AI
+    fun getGameplayMetrics(): Triple<Int, Float, Float> {
+        val avgSurvivalTime = if (gamesPlayed > 0) totalGameTime / gamesPlayed else 0f
+        return Triple(hitCount, avgSurvivalTime, currentGapHeight)
+    }
+    
+    fun applyAIDifficultyAdjustment(adjustment: DifficultyAdjustment) {
+        aiSpeedMultiplier = adjustment.speedMultiplier.coerceIn(0.8f, 1.5f)
+        aiGapMultiplier = adjustment.gapMultiplier.coerceIn(0.8f, 1.3f)
+    }
+    
     init {
         resetGame()
     }
@@ -79,6 +100,7 @@ class GameEngine(
         resetGame()
         isRunning = true
         gameOver = false
+        gameStartTime = System.currentTimeMillis()
         
         gameJob = gameScope.launch {
             var lastFrameTime = System.currentTimeMillis()
@@ -167,9 +189,10 @@ class GameEngine(
     }
     
     private fun updateObstacles(deltaTime: Float) {
-        // Move obstacles
+        // Move obstacles with AI speed multiplier
+        val adjustedSpeed = obstacleSpeed * aiSpeedMultiplier
         obstacles = obstacles.map { obstacle ->
-            obstacle.copy(x = obstacle.x - obstacleSpeed * deltaTime)
+            obstacle.copy(x = obstacle.x - adjustedSpeed * deltaTime)
         }
         
         // Remove obstacles that are off-screen
@@ -190,6 +213,12 @@ class GameEngine(
                 
                 // Update theme based on new score
                 updateTheme()
+                
+                // Trigger commentary
+                if (score % 3 == 0) { // Every 3 points
+                    val speaker = if (score % 2 == 0) "mamata" else "modi"
+                    onCommentaryUpdate(speaker, "scoring")
+                }
             }
         }
     }
@@ -206,7 +235,10 @@ class GameEngine(
         // Leave margin at top and bottom to ensure obstacles are visible
         val topMargin = 100f
         val bottomMargin = 150f // Account for ground
-        val safeZoneHeight = screenHeight - topMargin - bottomMargin - currentGapHeight
+        
+        // Apply AI gap multiplier
+        val adjustedGap = currentGapHeight * aiGapMultiplier
+        val safeZoneHeight = screenHeight - topMargin - bottomMargin - adjustedGap
         
         // Randomly position the gap within the safe zone
         val gapTopPosition = topMargin + (Math.random() * safeZoneHeight).toFloat()
@@ -215,7 +247,7 @@ class GameEngine(
         val topHeight = gapTopPosition
         
         // Bottom obstacle starts after the gap and goes to screen height
-        val bottomY = gapTopPosition + currentGapHeight
+        val bottomY = gapTopPosition + adjustedGap
         val bottomHeight = screenHeight - bottomY
         
         val newObstacle = Obstacle(
@@ -300,6 +332,13 @@ class GameEngine(
     private fun endGame() {
         gameOver = true
         isRunning = false
+        
+        // Track metrics for AI
+        hitCount++
+        gamesPlayed++
+        val gameTime = (System.currentTimeMillis() - gameStartTime) / 1000f
+        totalGameTime += gameTime
+        
         onGameOver(score)
     }
 }

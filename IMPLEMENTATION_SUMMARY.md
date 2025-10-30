@@ -5,27 +5,27 @@ Successfully implemented dynamic sprite and background changes based on score ra
 
 ## Score-Based Themes Implemented
 
-### 1. **Score 0-20: Space Theme** (Default)
+### 1. **Score 0-10: Space Theme** (Default)
    - **Bird**: modi.png
    - **Obstacle**: mamata.png
    - **Background**: Space with stars and planets (existing)
 
-### 2. **Score 21-30: DJ Party Theme**
+### 2. **Score 11-20: DJ Party Theme**
    - **Bird**: glaring-modi.png
    - **Obstacle**: hot-mamata.png
    - **Background**: DJ party with sunrise, seashore, and flying birds
 
-### 3. **Score 31-40: Fiery Hell Theme**
+### 3. **Score 21-30: Fiery Hell Theme**
    - **Bird**: angry-modi.png
    - **Obstacle**: angry-mamata.png
    - **Background**: Fiery hell with flames, lava, and floating embers
 
-### 4. **Score 41-50: Naruto Genjutsu Theme**
+### 4. **Score 31-40: Naruto Genjutsu Theme**
    - **Bird**: highest-modi.png
    - **Obstacle**: uruchimaru-mamata.png
    - **Background**: Naruto Shippuden style with Sharingan circles, Itachi's crows, and purple energy wisps
 
-### 5. **Score 51+: Haunted House Theme**
+### 5. **Score 41+: Haunted House Theme**
    - **Bird**: hulk-modi.png
    - **Obstacle**: mamata-ghost.png
    - **Background**: Spooky haunted houses with bats, full moon, and eerie mist
@@ -89,7 +89,7 @@ Since the actual PNG files weren't available, I created XML placeholder drawable
 
 ## Testing Recommendations
 
-1. Play the game and verify sprites change at score 21, 31, 41, and 51
+1. Play the game and verify sprites change at score 11, 21, 31, and 41
 2. Verify backgrounds animate properly for each theme
 3. Replace placeholder XML files with actual PNG images
 4. Test performance with all background animations

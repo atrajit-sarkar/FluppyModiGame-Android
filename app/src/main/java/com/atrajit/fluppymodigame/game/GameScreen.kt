@@ -28,6 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.atrajit.fluppymodigame.R
+import com.atrajit.fluppymodigame.ai.ApiKeyDialog
+import com.atrajit.fluppymodigame.ai.GeminiAIManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,12 @@ fun GameScreen() {
     val context = LocalContext.current
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
+    
+    // AI Manager
+    val aiManager = remember { GeminiAIManager(context) }
+    var showApiKeyDialog by remember { mutableStateOf(!aiManager.hasApiKey()) }
+    var currentCommentary by remember { mutableStateOf("") }
+    var commentarySpeaker by remember { mutableStateOf("") }
     
     // Game state
     var gameState by remember { mutableStateOf(GameState.START) }
@@ -98,6 +106,9 @@ fun GameScreen() {
     // Shatter effect for collision
     val shatterEffect = remember { ShatterEffect() }
     
+    // Mutable reference for game engine (for callbacks)
+    var gameEngineRef: GameEngine? by remember { mutableStateOf(null) }
+    
     // Game engine
     val gameEngine = remember {
         GameEngine(
@@ -158,8 +169,36 @@ fun GameScreen() {
                     particleCount = 15,
                     color = Color(0xFFFFEB3B) // Gold sparkles
                 )
+            },
+            onCommentaryUpdate = { speaker, action ->
+                // Generate AI commentary
+                gameEngineRef?.let { engine ->
+                    if (aiManager.hasApiKey()) {
+                        coroutineScope.launch {
+                            val scoreLevel = when (engine.score) {
+                                in 0..10 -> 0
+                                in 11..20 -> 11
+                                in 21..30 -> 21
+                                in 31..40 -> 31
+                                else -> 41
+                            }
+                            val commentary = aiManager.generateCommentary(
+                                scoreLevel, engine.score, action, speaker
+                            )
+                            if (commentary.isNotEmpty()) {
+                                currentCommentary = commentary
+                                commentarySpeaker = speaker
+                                // Clear after 5.5 seconds (5500ms) - giving user time to read
+                                delay(5500)
+                                if (currentCommentary == commentary) {
+                                    currentCommentary = ""
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        )
+        ).also { gameEngineRef = it }
     }
     
     // Clean up resources when leaving the screen
@@ -272,6 +311,21 @@ fun GameScreen() {
             }
         }
         
+        // AI difficulty adjustment on game over
+        LaunchedEffect(gameState) {
+            if (gameState == GameState.GAME_OVER && aiManager.hasApiKey()) {
+                val metrics = gameEngine.getGameplayMetrics()
+                val adjustment = aiManager.generateDifficultyAdjustment(
+                    gameEngine.score, 
+                    metrics.first, 
+                    metrics.second, 
+                    gameEngine.aiSpeedMultiplier, 
+                    metrics.third
+                )
+                gameEngine.applyAIDifficultyAdjustment(adjustment)
+            }
+        }
+        
         // UI overlays based on game state
         when (gameState) {
             GameState.START -> {
@@ -284,11 +338,41 @@ fun GameScreen() {
                 )
             }
             GameState.PLAYING -> {
+                // Commentary display at the top
+                if (currentCommentary.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 16.dp)
+                            .background(
+                                color = Color(0xCC000000),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = if (commentarySpeaker == "mamata") "Mamata:" else "Modi:",
+                                color = if (commentarySpeaker == "mamata") Color(0xFFFF6B6B) else Color(0xFF6BCB77),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = currentCommentary,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+                
                 // Score display with shadow for better visibility
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = 32.dp)
+                        .padding(top = if (currentCommentary.isNotEmpty()) 90.dp else 32.dp)
                 ) {
                     // Shadow text
                     Text(
@@ -319,6 +403,17 @@ fun GameScreen() {
                     }
                 )
             }
+        }
+        
+        // API Key Dialog
+        if (showApiKeyDialog) {
+            ApiKeyDialog(
+                onDismiss = { showApiKeyDialog = false },
+                onApiKeySet = { key ->
+                    aiManager.setApiKey(key)
+                    showApiKeyDialog = false
+                }
+            )
         }
     }
 }
